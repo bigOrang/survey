@@ -1,0 +1,166 @@
+{extend name="common/form"/}
+{block name="link"}
+<link href="__STATIC__/js/plugins/multiselect/css/multi-select.css"  rel="stylesheet" type="text/css" />
+{/block}
+{block name="style"}
+<style>
+    #search_div{
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        background: #fff none repeat scroll 0 0;
+        border: 1px solid #ccc;
+        margin: 10px auto;
+        padding:10px;
+        font-family: "Microsoft Yahei", "微软雅黑", "Pinghei";
+        font-size: 14px;
+    }
+    #search_input {
+        width: 200px;
+    }
+    .control-label span {
+        color:red
+    }
+    .x_element {
+        font-size: 15px;
+        font-weight: bold;
+    }
+    .x_element:hover {
+        cursor:pointer
+    }
+</style>
+{/block}
+{block name="body"}
+
+<div class="row layui-layout-body">
+    <div class="ibox float-e-margins">
+        <div class="ibox-content">
+            <form class="form-horizontal m-t" data-parsley-validate id="commentForm">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">问题分类 <span>*</span></label>
+                    <div class="col-sm-8">
+                        <select class="form-control select2" name="type" id="type" required data-pagination="请选择问题分类">
+                            <option value="">请选择问题分类</option>
+                            <option value="1" {if $topicData.type == 1} selected {/if}>单选题</option>
+                            <option value="2" {if $topicData.type == 2} selected {/if}>多选题</option>
+                            <option value="3" {if $topicData.type == 3} selected {/if}>简答题</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">问题名称 <span>*</span></label>
+                    <div class="col-sm-8">
+                        <input id="t_name" type="text" minlength="2" maxlength="50" class="form-control" name="t_name" required="" aria-required="true" value="{$topicData.t_name}">
+                    </div>
+                </div>
+                <div id="elementBox">
+                    <div class="form-group t_description">
+                        <label class="col-sm-3 control-label">问题题目描述 <span>*</span></label>
+                        <div class="col-sm-8">
+                            <textarea name="t_description[]" class="form-control" rows="2"  style="resize:none" maxlength="100" minlength="2">{notempty name="firstDes"}{$firstDes}{/notempty}</textarea>
+                        </div>
+                    </div>
+                    {notempty name="otherDes"}
+                    {foreach $otherDes as $key=>$vo}
+                    <div class="form-group t_description element-pull">
+                        <label class="col-sm-3 control-label">
+                            <span class="x_element" onclick="deleteElement(this)"> X </span>
+                            问题题目描述[{$key}] <span>*</span>
+                        </label>
+                        <div class="col-sm-8">
+                            <textarea name="t_description[]" class="form-control" rows="2"  style="resize:none" maxlength="100" minlength="2">{$vo}</textarea>
+                        </div>
+                    </div>
+                    {/foreach}
+                    {/notempty}
+                </div>
+                <div class="form-group" >
+                    <label class="col-sm-3 control-label">是否必填 <span>*</span></label>
+                    <div class="col-sm-8">
+                        <div class="col-sm-3 radio i-checks">
+                            <label><input type="radio" value="1" name="is_required" {if $topicData.is_required == 1} checked {/if} > <i></i> 是</label>
+                        </div>
+                        <div class="col-sm-3 radio i-checks">
+                            <label><input type="radio" value="0" name="is_required" {if $topicData.is_required == 0} checked {/if} > <i></i> 否</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <input type="hidden" name="id" value="{$topicData.id}">
+                        <button type="submit" id="submit" class="btn btn-w-m btn-primary">提交</button>
+                        <button type="reset" onclick="location.reload()" class="btn btn-w-m btn-warning">重置</button>
+                        <button type="button" id="add-des" class="btn btn-w-m btn-info" onclick="pullElement()" style="display: none">新增题目描述</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="__STATIC__/js/plugins/multiselect/js/jquery.multi-select.js"></script>
+<script src="__STATIC__/js/plugins/jquery-quicksearch/jquery.quicksearch.js"></script>
+<script src="__STATIC__/js/plugins/validate/jquery.validate.min.js"></script>
+<script src="__STATIC__/js/plugins/validate/messages_zh.min.js"></script>
+<script src="__STATIC__/js/plugins/select2/select2.min.js"></script>
+<script src="__STATIC__/js/plugins/select2/select2_locale_zh-CN.js"></script>
+<script>
+    $(".select2").select2();
+    $("#type").change(function () {
+        var len = document.getElementsByClassName('t_description').length;
+        if ($(this).val() != 3) {
+            $("#add-des").show();
+            if (len == 1) {
+                pullElement();
+            }
+        } else {
+            $("#add-des").hide();
+            $(".element-pull").remove();
+        }
+    });
+    jQuery(document).ready(function() {
+        var is_show = "{$topicData.type}";
+        if (is_show != 3) {
+            $("#add-des").show();
+        } else {
+            $("#add-des").hide();
+        }
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green',
+            radioClass: 'iradio_square-green',
+        });
+    });
+    Parsley.on('form:submit', function(e) {
+        var formData = $('form').serializeObject();
+        return ajaxPostData(formData, "{:url('topic/update')}");
+    });
+    function pullElement()
+    {
+        var elementData = '';
+        var len = document.getElementsByClassName('t_description').length;
+        if (len == 0) {
+            elementData = '<div class="form-group t_description element-pull">\n' +
+                '                        <label class="col-sm-3 control-label">问题题目描述 <span>*</span></label>\n' +
+                '                        <div class="col-sm-8">\n' +
+                '                            <textarea name="t_description[]" class="form-control" rows="2"  style="resize:none" maxlength="100" minlength="2"></textarea>\n' +
+                '                        </div>\n' +
+                '                    </div>';
+        } else {
+            elementData = '<div class="form-group t_description element-pull">\n' +
+                '                        <label class="col-sm-3 control-label">' +
+                '<span class="x_element" onclick="deleteElement(this)"> X </span>' +
+                '问题题目描述['+ (len+1) +'] <span>*</span></label>\n' +
+                '                        <div class="col-sm-8">\n' +
+                '                            <textarea name="t_description[]" class="form-control" rows="2"  style="resize:none" maxlength="100" minlength="2"></textarea>\n' +
+                '                        </div>\n' +
+                '                    </div>';
+        }
+        $("#elementBox").append(elementData);
+    }
+    function deleteElement(e)
+    {
+        $(e).parent().parent().remove();
+    }
+</script>
+{/block}

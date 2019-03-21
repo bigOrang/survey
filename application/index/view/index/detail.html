@@ -1,0 +1,206 @@
+{extend name="common/form"/}
+{block name="link"}
+<link href="__STATIC__/js/plugins/multiselect/css/multi-select.css"  rel="stylesheet" type="text/css" />
+{/block}
+{block name="style"}
+<style>
+    /*高仿Html5自带的验证提示*/
+    .parsley-errors-list li{
+        position: fixed;
+        border: 1px solid #f0f0f0;
+        border-radius: 5px;
+        padding: 5px;
+        background-color: white;
+        z-index: 99999;
+        font-size: 14px;
+        color: #282828;
+        box-shadow: 0 0 20px #282828;
+    }
+
+    .parsley-errors-list li:after {
+        content: "";
+        position: absolute;
+        top: -8px;
+        left: 10px;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid white;
+    }
+
+    .parsley-errors-list li:after {
+        content: "";
+        position: absolute;
+        top: -8px;
+        left: 10px;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid white;
+    }
+
+    .parsley-errors-list li:before {
+        content: "!";
+        display: inline-block;
+        background-color: rgb(250,168,50);
+        font-size: 16px;
+        width: 18px;
+        height: 18px;
+        line-height: 18px;
+        color: white;
+        border-radius: 2px;
+        text-align: center;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+
+    .parsley-errors-list li {
+        display: inline-block;
+        vertical-align: top;
+        line-height: 18px;
+    }
+
+    .mui-radio input[type=radio]:checked:before {content: '\e442';}
+</style>
+{/block}
+{block name="script"}
+<script src="__STATIC__/js/plugins/multiselect/js/jquery.multi-select.js"></script>
+<script src="__STATIC__/js/plugins/jquery-quicksearch/jquery.quicksearch.js"></script>
+<script src="__STATIC__/js/plugins/validate/jquery.validate.min.js"></script>
+<script src="__STATIC__/js/plugins/validate/messages_zh.min.js"></script>
+{/block}
+{block name="body"}
+<!--mui标题-->
+<header class="mui-bar mui-bar-nav">
+    <a class="mui-icon mui-action-menu mui-icon-back mui-pull-left" id="go-back"></a>
+    <h1 class="mui-title">{$title}问卷调查</h1>
+</header>
+<!--mui内容-->
+<div class="mui-content mui-scroll-wrapper">
+    <div class="mui-scroll">
+        <form data-parsley-validate="">
+            {foreach $question as $key=>$val}
+            <div class="mui-card">
+                {if $val.is_required == 1}
+                    <div class="mui-card-header" style="word-wrap:break-word;display: block;"><span style="color: red">*</span> 第{$key + 1}题 {$val.type == 2 ? '(可多选)' : ''}：{$val.t_name}</div>
+                {else /}
+                    <div class="mui-card-header" style="word-wrap:break-word;display: block;">第{$key + 1}题 {$val.type == 2 ? '(可多选)' : ''}：{$val.t_name}</div>
+                {/if}
+                    <div class="mui-card-content">
+                        {if $val.type == 1}
+                            {if empty($val.content)}
+                                <div class="mui-input-row mui-radio">
+                                    <label class="mui-text-center">该问题暂无选项</label>
+                                </div>
+                            {else /}
+                                {foreach $val.content as $i=>$j}
+                                    <div class="mui-input-row mui-radio">
+                                        <label for="radio-{$j.des_id}">{$i+1}、{$j.content}</label>
+                                        {if $val.is_required == 1}
+                                            <input id="radio-{$j.des_id}" value="{$j.des_id}" name="radio[{$val.id}]" required class="mui-radio mui-left" type="radio">
+                                        {else /}
+                                            <input id="radio-{$j.des_id}" value="{$j.des_id}" name="radio[{$val.id}]" class="mui-radio mui-left" type="radio">
+                                        {/if}
+                                    </div>
+                                {/foreach}
+                            {/if}
+                        {elseif $val.type == 2 /}
+                            {if empty($val.content)}
+                                <div class="mui-input-row mui-radio">
+                                    <label class="mui-text-center">该问题暂无选项</label>
+                                </div>
+                            {else /}
+                                {foreach $val.content as $i=>$j}
+                                    <div class="mui-input-row mui-checkbox">
+                                        <label for="checkbox-{$j.des_id}">{$i+1}、{$j.content}</label>
+                                        <input id="checkbox-{$j.des_id}" name="checkbox[{$val.id}][]" {if $val.is_required == 1} required {/if} value="{$j.des_id}" type="checkbox">
+                                    </div>
+                                {/foreach}
+                            {/if}
+                        {else /}
+                            <div class="mui-card-content">
+                                <div class="mui-input-row" style="">
+                                    <textarea name="input[{$val.id}]" id="" cols="30" rows="10" style="resize: none;" maxlength="100" placeholder="请输入..." class="mui-input-clear" {if $val.is_required == 1} required {/if} ></textarea>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+            </div>
+            {/foreach}
+            <div class="mui-card">
+                <div class="mui-button-row" style="padding-bottom: 5px;">
+                    <input type="hidden" name="s_id" value="{$s_id}">
+                    <button type="reset" class="mui-btn mui-btn-danger">重置</button>
+                    <button type="submit" class="mui-btn mui-btn-primary">确认</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script type="text/javascript" src="__STATIC__/plugins/mui/js/common.js"></script>
+<script>
+    mui.ready(function() {
+        //初始化区域滚动
+        var scroll = mui(".mui-scroll-wrapper").scroll();
+    });
+    var click = document.getElementById("go-back");
+    click.addEventListener('tap',function(){
+        window.location.href = "{:url('index/index')}";
+    });
+    Parsley.on('form:submit', function(e) {
+        var formData = $('form').serializeObject();
+        var error = '';
+        $.each(formData, function (key, val) {
+            if(key.indexOf("input") >= 0 ) {
+                if (isEmojiCharacter(val) === true) {
+                    error = '简答题内容中包括特殊字符';
+                }
+            }
+        });
+        if (error !== '') {
+            mui.alert(error, '哎呀，出错了', function() {
+            });
+            return false;
+        }
+        return muiAjaxPostData(formData, "{:url('index/detail')}");
+    });
+
+    function isEmojiCharacter(substring){
+        if(substring){
+            // var reg = new RegExp("[~#^$@%&!?%*]", 'g');
+            // if (substring.match(reg)) {
+            //     return true;
+            // }
+            for ( var i = 0; i < substring.length; i++) {
+                var hs = substring.charCodeAt(i);
+                if (0xd800 <= hs && hs <= 0xdbff) {
+                    if (substring.length > 1) {
+                        var ls = substring.charCodeAt(i + 1);
+                        var uc = ((hs - 0xd800) * 0x400) + (ls - 0xdc00) + 0x10000;
+                        if (0x1d000 <= uc && uc <= 0x1f77f) {
+                            return true;
+                        }
+                    }
+                } else if (substring.length > 1) {
+                    var ls = substring.charCodeAt(i + 1);
+                    if (ls == 0x20e3) {
+                        return true;
+                    }
+                } else {
+                    if (0x2100 <= hs && hs <= 0x27ff) {
+                        return true;
+                    } else if (0x2B05 <= hs && hs <= 0x2b07) {
+                        return true;
+                    } else if (0x2934 <= hs && hs <= 0x2935) {
+                        return true;
+                    } else if (0x3297 <= hs && hs <= 0x3299) {
+                        return true;
+                    } else if (hs == 0xa9 || hs == 0xae || hs == 0x303d || hs == 0x3030
+                        || hs == 0x2b55 || hs == 0x2b1c || hs == 0x2b1b
+                        || hs == 0x2b50) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+</script>
+{/block}

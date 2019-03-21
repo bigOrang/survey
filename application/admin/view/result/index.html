@@ -1,0 +1,148 @@
+{extend name="common/base"/}
+{block name="link"}
+<link href="__STATIC__/css/plugins/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
+{/block}
+{block name="style"}
+<style>
+    #advanced-search-box .form-group{
+        margin-top: 10px;
+        margin-bottom: 0;
+    }
+</style>
+{/block}
+{block name="body"}
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="example-wrap">
+                <h4 class="example-title">问卷调查--问卷结果</h4>
+                <div class="example">
+                    <form class="form-horizontal" id="advanced-search-box" style="display: none;">
+                        <div class="row">
+                            <div class="form-group col-xs-12 col-sm-6 col-md-4">
+                                <label class="col-sm-4 control-label">选择问题类型</label>
+                                <div class="col-sm-8">
+                                    <select name="category" class="form-control select2" onchange="advancedSearch(this)">
+                                        <option value="">请选择问题类型</option>
+                                        <option value="1">单选题</option>
+                                        <option value="2">多选题</option>
+                                        <option value="3">简答题</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <button type="button" onclick="advancedSearch()" class="btn btn-primary btn-sm">提交</button>
+                                <button type="reset" class="btn btn-default btn-sm">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="toolbar" class="btn-group">
+                        <button type="button" class="btn btn-outline btn-default" title="返回问卷查询" onclick="window.location='{:url(\'survey/index\')}'">
+                            <i class="glyphicon glyphicon-chevron-left" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="columns-right pull-right" style="margin-top:10px;margin-bottom:10px;">
+                        <button class="btn btn-default btn-outline" id="advanced-search"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                data-original-title="高级搜索"
+                        ><i class="fa fa-search"></i></button>
+                    </div>
+                    <table id="grid"  data-toggle="table" class="table-bordered ">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+    var flg = true;
+    var s_id = "{$s_id}";
+    var searchTip = '请输入待查询问题的标题';
+    var columns = [{
+        field: 'id',
+        title: '序号',
+        sortable: false
+    }, {
+        field: 't_name',
+        title: '问题标题',
+        sortable: false
+    }, {
+        field: 't_description',
+        title: '问题描述',
+        sortable: false
+    }, {
+        field: 'is_required',
+        title: '是否必填',
+        sortable: false,
+        formatter: function(value,row,index) {
+            return row.is_required == 1 ? '必填' : '非必填';
+        }
+    }, {
+        field: 'type',
+        title: '问题类型',
+        sortable: false,
+        formatter: function(value,row,index) {
+            return row.type == 1 ? '单选题' : ( row.type == 2 ? '多选题' : '简答题');
+        }
+    }, {
+        field: 'do',
+        title: '操作',
+        formatter: function(value,row,index) {
+            var e;
+            e   = "<a onclick=jump(" + row.id +",'detail','详情')>详情</a>&nbsp;";
+            if (row.type == 1 || row.type == 2) {
+                e += "<a onclick=jump(" + row.id +",'show','图表')>图表</a>&nbsp;";
+            } else {
+                e += '<span>暂无图表</span>&nbsp;';
+            }
+            return e;
+        }
+    }];
+    var baseData = {};
+    baseData['s_id'] = s_id;
+    var table = new BSTable('grid', "{:url('result/index')}", columns, searchTip, baseData);
+    table.setPaginationType('server');
+    table.init();
+
+
+    $('#advanced-search').on('click', function () {
+        if (flg === true) {
+            $('#advanced-search-box').show();
+            flg = false;
+        } else {
+            $('#advanced-search-box').hide();
+            flg = true;
+        }
+    });
+
+    //自定义搜索
+    function advancedSearch(obj) {
+        var formData = {};
+        if ('undefined' == typeof obj) {
+            formData = $('form').serializeObject()
+            formData['time'] = $('#date-range').val();
+        } else {
+            formData['category'] = $(obj).val();
+        }
+        var params = {
+            query: formData
+        };
+        table.refresh(params)
+    }
+
+    function jump(id, type, name) {
+        var url = '';
+        if (type == 'show') {
+            url = "{:url('result/show',array('id'=>'P_id'))}";
+        } else {
+            url = "{:url('result/detail',array('id'=>'P_id'))}";
+        }
+        url =  url.replace("P_id",id);
+        dialog(name, url, 800, 650);
+    }
+</script>
+{/block}

@@ -1,0 +1,116 @@
+{extend name="common/form"/}
+{block name="link"}
+<link href="__STATIC__/js/plugins/multiselect/css/multi-select.css"  rel="stylesheet" type="text/css" />
+{/block}
+{block name="style"}
+<style>
+    #search_div{
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        background: #fff none repeat scroll 0 0;
+        border: 1px solid #ccc;
+        margin: 10px auto;
+        padding:10px;
+        font-family: "Microsoft Yahei", "微软雅黑", "Pinghei";
+        font-size: 14px;
+    }
+    #search_input {
+        width: 200px;
+    }
+</style>
+{/block}
+{block name="body"}
+<div class="row layui-layout-body">
+    <div class="ibox float-e-margins">
+        <div class="ibox-content">
+            <form class="form-horizontal m-t" data-parsley-validate id="commentForm">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">标题</label>
+                    <div class="col-sm-8">
+                        <input id="title" type="text" minlength="2" maxlength="15" class="form-control" name="title" required="" aria-required="true">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">开始时间</label>
+                    <div class="col-sm-8">
+                        <input placeholder="开始日期" class="form-control layer-date"  required="" aria-required="true" name="start_time" id="start" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">结束时间</label>
+                    <div class="col-sm-8">
+                        <input placeholder="结束日期" class="form-control layer-date"  required="" aria-required="true" name="end_time" id="end" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">问卷对象</label>
+                    <div class="col-sm-8">
+                        <select class="form-control select2"  id="survey_user" name="survey_user" data-pagination="请选择问卷对象">
+                            <option value="">请选择问卷对象</option>
+                            <option value="1">匿名(无需登录)</option>
+                            <option value="2">学生</option>
+                            <option value="3">教师</option>
+                            <option value="4">学生/教师</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">问卷描述</label>
+                    <div class="col-sm-8">
+                        <textarea id="description" name="description" class="form-control" rows="2"  style="resize:none" maxlength="100"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <button type="submit" id="submit" class="btn btn-w-m btn-primary">提交</button>
+                        <button type="reset" onclick="location.reload()" class="btn btn-w-m btn-warning">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="__STATIC__/js/plugins/multiselect/js/jquery.multi-select.js"></script>
+<script src="__STATIC__/js/plugins/jquery-quicksearch/jquery.quicksearch.js"></script>
+<script src="__STATIC__/js/plugins/validate/jquery.validate.min.js"></script>
+<script src="__STATIC__/js/plugins/validate/messages_zh.min.js"></script>
+<script src="__STATIC__/js/plugins/select2/select2.min.js"></script>
+<script src="__STATIC__/js/plugins/select2/select2_locale_zh-CN.js"></script>
+<script>
+    $(".select2").select2();
+    //日期范围限制
+    var start = {
+        elem: '#start',
+        format: 'YYYY-MM-DD hh:mm:ss',
+        min: laydate.now(0, 'YYYY-MM-DD hh:mm:ss'), //设定最小日期为当前日期
+        max: '2099-06-16 23:59:59', //最大日期
+        istime: true,
+        istoday: false,
+        choose: function (datas) {
+            end.min = datas; //开始日选好后，重置结束日的最小日期
+            end.start = datas //将结束日的初始值设定为开始日
+        }
+    };
+    var end = {
+        elem: '#end',
+        format: 'YYYY-MM-DD hh:mm:ss',
+        min: laydate.now(0, 'YYYY-MM-DD hh:mm:ss'),
+        max: '2099-06-16 23:59:59',
+        istime: true,
+        istoday: false,
+        choose: function (datas) {
+            start.max = datas; //结束日选好后，重置开始日的最大日期
+        }
+    };
+    laydate(start);
+    laydate(end);
+    Parsley.on('form:submit', function(e) {
+        var formData = $('form').serializeObject();
+        console.log(formData);
+        return ajaxPostData(formData, "{:url('survey/add')}");
+    });
+</script>
+{/block}
