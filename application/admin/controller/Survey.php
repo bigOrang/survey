@@ -3,6 +3,7 @@ namespace app\admin\controller;
 
 use app\admin\model\CategoryModel;
 use app\admin\model\SurveyModel;
+use app\admin\model\SurveyTypeModel;
 use app\admin\model\TopicDesModel;
 use app\admin\model\TopicModel;
 use think\Db;
@@ -24,7 +25,8 @@ class Survey extends Base
                     if (isset($searchData['search']) || !empty($searchData['search']))
                         $query->where('b.title', 'like','%'.$searchData['search'].'%');
                 })
-                    ->field("b.*")->order("id","desc")->paginate($limit);
+                    ->leftJoin("t_survey_type a","a.id=b.survey_user")
+                    ->field("b.*,a.name")->order("id","desc")->paginate($limit);
                 $data = json_decode(json_encode($data),true);
             } catch (Exception $exception) {
                 Log::error('获取数据错误：'. $exception->getMessage());
@@ -56,6 +58,9 @@ class Survey extends Base
                 return $this->responseToJson([],'添加失败'.$e->getMessage() , 201);
             }
         }
+        $surveyTypeModel = new SurveyTypeModel();
+        $types = $surveyTypeModel->where("is_show",1)->select();
+        $this->assign("types", $types);
         return $this->fetch('./survey/add');
     }
 
@@ -83,6 +88,9 @@ class Survey extends Base
             $this->checkIsRelease($id);
             $data = SurveyModel::where("id", $id)->find();
             $data = json_decode(json_encode($data),true);
+            $surveyTypeModel = new SurveyTypeModel();
+            $types = $surveyTypeModel->where("is_show",1)->select();
+            $this->assign("types", $types);
             $this->assign("data", $data);
             return $this->fetch('./survey/edit');
         } else {

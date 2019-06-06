@@ -29,7 +29,7 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">标题</label>
                     <div class="col-sm-8">
-                        <input id="title" type="text" minlength="2" maxlength="15" class="form-control" name="title" required="" aria-required="true" value="{$data.title}">
+                        <input id="title" type="text" minlength="2" maxlength="15" class="form-control" name="title" required="" aria-required="true" value="{$data.title}" autocomplete="off">
                     </div>
                 </div>
                 <div class="form-group">
@@ -49,10 +49,13 @@
                     <div class="col-sm-8">
                         <select class="form-control select2"  id="survey_user" name="survey_user" data-pagination="请选择问卷对象">
                             <option>请选择问卷对象</option>
-                            <option value="1" {if $data.survey_user == 1} selected {/if}>匿名(无需登录)</option>
-                            <option value="2" {if $data.survey_user == 2} selected {/if}>学生</option>
-                            <option value="3" {if $data.survey_user == 3} selected {/if}>教师</option>
-                            <option value="4" {if $data.survey_user == 4} selected {/if}>学生/教师</option>
+                            {foreach $types as $key=>$value}
+                            {if $data.survey_user == $value.id}
+                            <option value="{$value.id}" selected>{$value.name}</option>
+                            {else}
+                            <option value="{$value.id}">{$value.name}</option>
+                            {/if}
+                            {/foreach}
                         </select>
                     </div>
                 </div>

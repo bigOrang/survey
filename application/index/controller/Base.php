@@ -14,7 +14,6 @@ class Base extends Controller
         $user_id = input('get.user_id');
         $school_id = input('get.school_id');
         $client_id = input('get.client_id');
-//        $this->getTooHref();
         if (!empty($user_id) && !empty($school_id) && !empty($client_id)) {
             session('index_auth_status', 1);
             session('index_user_id', $user_id);
@@ -85,7 +84,7 @@ class Base extends Controller
     public function getUserInfo()
     {
         //获取token
-        $client_id = \session("client_id");
+        $client_id = \session("index_client_id");
         $tokenService = config('api.getToken');
         $userInfoService = config('api.getUserInfo');
         $basicHeader[] = "Authorization: Basic ".base64_encode("{$client_id}:{$tokenService['basic']['password']}"); //添加头，在name和pass处填写对应账号密码
@@ -95,6 +94,7 @@ class Base extends Controller
         $token = $this->curlRequest($tokenService['url'], $tokenService['method'], $tokenHeader, $tokenService['body'], []);
         if (!isset($token['access_token'])) {
             Log::error('------------$token---------');
+            Log::error($tokenHeader);
             Log::error($tokenService);
             Log::error($token);
             exit($this->fetch('./500',[
@@ -239,7 +239,6 @@ class Base extends Controller
 
     public function getTooHref()
     {
-        Log::error('1231231231231231');
         $name = 'kitty';
         echo <<<Eof
 <table height="20"> 

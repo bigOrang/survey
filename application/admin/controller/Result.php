@@ -185,7 +185,7 @@ class Result extends Base
         $legendData = $selected = $seriesData = [];
         foreach ($data as $key=>$value) {
             $topicUserModel = new SurveyUserModel();
-            $num = $topicUserModel->where("td_id", $value->id)->count();
+            $num = $topicUserModel->where("td_id", $value->id)->where("user_id","<>","0")->count();
             $legendData[] = $value->content;
             $selected[] = [$value->content => true];
             $seriesData[] = ['name' => $value->content, 'value' => $num];

@@ -14,11 +14,6 @@ class Index extends Base
 {
     public function index(Request $request)
     {
-        return $this->fetch('./index');
-    }
-
-    public function show(Request $request)
-    {
         return $this->fetch('./index/index');
     }
 
@@ -38,26 +33,29 @@ class Index extends Base
             else
                 $field = "a.*, CASE WHEN b.user_id = '{$userId}' THEN '1' ELSE NULL END AS info_id";
             $query = $surveyModel->alias("a")->where("a.status", 2);
-            if ($userType === 0) {
-                $query->whereIn("a.survey_user",'1,3,4');
-            } elseif($userType == 1) {
-                $query->whereIn("a.survey_user",'1,2,4');
-            } else {
-                $query->where("a.survey_user",'1');
-            }
+//            if ($userType === 0) { //老师身份
+//                $query->whereIn("a.survey_user",'1,3,4');
+//            } elseif($userType == 1) { //学生身份
+//                $query->whereIn("a.survey_user",'1,2,4');
+//            } else { //匿名
+//                $query->where("a.survey_user",'1');
+//            }
             if (!empty($title)) {
                 $query->where("a.title","LIKE","%". $title."%");
             }
-            if ($isWrite == 2) {
+            if ($isWrite == 2) { //未填写
                 $query->where("b.id",NULL);
             }
-            if ($isWrite == 3) {
+            if ($isWrite == 3) { //已填写
                 $query->where('b.id','not null');
             }
             $query->leftJoin("t_survey_user b","a.id=b.s_id")
-                ->where("a.end_time",">",date("Y-m-d H:i:s"))->where(function ($q) use ($userId) {
-                    if ($userId !== 1)
-                        $q->where("b.user_id", $userId)->whereOr("b.user_id","null");
+                ->leftJoin("t_survey_type c","c.id=a.survey_user")
+                ->where("a.end_time",">=",date("Y-m-d H:i:s"))
+                ->where("a.start_time","<=",date("Y-m-d H:i:s"))
+                ->where(function ($q) use ($userId) {
+//                    if ($userId !== 1)
+//                        $q->where("b.user_id", $userId)->whereOr("b.user_id","null");
                 })
                 ->field($field)->group("a.id");
             $data = $query->limit($all)->select();
@@ -132,20 +130,20 @@ class Index extends Base
         if (empty($id)) {
             exit($this->alertInfo("相关参数未获取"));
         }
-        if (session("index_user_type") === 0) {
-            $survey_user = ['1','3','4'];
-        } elseif(session("index_user_type") == 1) {
-            $survey_user = ['1','2','4'];
-        } else {
-            $survey_user = ['1'];
-        }
+//        if (session("index_user_type") === 0) {
+//            $survey_user = ['1','3','4'];
+//        } elseif(session("index_user_type") == 1) {
+//            $survey_user = ['1','2','4'];
+//        } else {
+//            $survey_user = ['1'];
+//        }
         $data = SurveyModel::where("id", $id)->find();
         if ($data->status == 1)
             exit($this->alertInfo("当前问卷未发布"));
         if (strtotime($data->end_time) < time())
             exit($this->alertInfo("当前问卷访问时间已过期"));
-        if (!in_array($data->survey_user, $survey_user))
-            exit($this->alertInfo("访问问卷详情被拒绝"));
+//        if (!in_array($data->survey_user, $survey_user))
+//            exit($this->alertInfo("访问问卷详情被拒绝"));
         $topicModel = new TopicModel();
         $topicDesModel = new TopicDesModel();
         $surveyUserModel = new SurveyUserModel();
@@ -181,20 +179,20 @@ class Index extends Base
             if (empty($id)) {
                 $errorMsg = "相关参数未获取";
             }
-            if (session("index_user_type") === 0) {
-                $survey_user = ['1','3','4'];
-            } elseif(session("index_user_type") == 1) {
-                $survey_user = ['1','2','4'];
-            } else {
-                $survey_user = ['1'];
-            }
+//            if (session("index_user_type") === 0) {
+//                $survey_user = ['1','3','4'];
+//            } elseif(session("index_user_type") == 1) {
+//                $survey_user = ['1','2','4'];
+//            } else {
+//                $survey_user = ['1'];
+//            }
             $data = SurveyModel::where("id", $id)->find();
             if ($data->status == 1)
                 $errorMsg = "当前问卷未发布";
             if (strtotime($data->end_time) < time())
                 $errorMsg = "当前问卷访问时间已过期";
-            if (!in_array($data->survey_user, $survey_user))
-                $errorMsg = "访问问卷详情被拒绝";
+//            if (!in_array($data->survey_user, $survey_user))
+//                $errorMsg = "访问问卷详情被拒绝";
             $surveyUserModel = new SurveyUserModel();
             $isWrite = $surveyUserModel->where("user_id", session("index_user_id"))->where("s_id", $id)->find();
             if ($isWrite)
